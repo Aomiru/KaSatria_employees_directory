@@ -5,6 +5,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="main.css">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
 		<style>
 			a {
 				color: #8ff;
@@ -194,14 +195,6 @@
 			border-radius: 0px;
 		}
 		</style>
-		<!-- Placeholder global callback must exist BEFORE loading GSI script -->
-		<script>
-			// Temporary holder so data-callback finds a function; replaced later in module script
-			window.handleCredentialResponse = function(resp){
-				console.warn('GSI early credential received before main script loaded');
-				window._earlyGSIResp = resp; // stash to process after full logic attaches
-			};
-		</script>
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 	</head>
@@ -226,18 +219,8 @@
 	
 	<!-- Google Sign-In -->
 		<div id="auth-container">
-			<div id="g_id_onload"
-				data-client_id="679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com"
-				data-callback="handleCredentialResponse"
-				data-auto_prompt="false">
-			</div>
-			<div class="g_id_signin" 
-				data-type="standard"
-				data-theme="filled_blue"
-				data-size="large"
-				data-text="signin_with"
-				data-shape="rectangular">
-			</div>
+			<!-- Container for rendered Google button -->
+			<div class="g_id_signin"></div>
 			<div id="user-info" style="display: none;">
 				<img id="user-avatar" src="" alt="User Avatar">
 				<div id="user-details">
@@ -904,14 +887,31 @@
 				}
 			});
 
-			// Make handleCredentialResponse globally available
+			// Expose handler globally (if future non-module code needs it)
 			window.handleCredentialResponse = handleCredentialResponse;
-			// If a credential arrived before definition, process it now
-			if(window._earlyGSIResp){
-				console.log('Late binding: handling queued GSI credential');
-				handleCredentialResponse(window._earlyGSIResp);
-				delete window._earlyGSIResp;
+
+			// Programmatic Google Identity initialization
+			function initGoogleId() {
+				if (!window.google || !google.accounts || !google.accounts.id) {
+					setTimeout(initGoogleId, 100); // wait until script loaded
+					return;
+				}
+				google.accounts.id.initialize({
+					client_id: '679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com',
+					callback: handleCredentialResponse,
+					ux_mode: 'popup',
+					auto_select: false,
+				});
+				google.accounts.id.renderButton(document.querySelector('.g_id_signin'), {
+					theme: 'filled_blue',
+					size: 'large',
+					shape: 'rectangular',
+					text: 'signin_with'
+				});
+				// Optionally prompt (kept manual to avoid auto-popup): google.accounts.id.prompt();
 			}
+
+			initGoogleId();
 
 		</script>
 	</body>
