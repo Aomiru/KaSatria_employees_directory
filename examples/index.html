@@ -543,13 +543,11 @@
 				});
 			}
 
-			// Automatic token request function (called after sign in)
-			function requestToken() {
-				if (!tokenClient) {
-					initTokenClient();
-				}
-				// Request token without re-showing the account chooser if possible
-				tokenClient.requestAccessToken({ prompt: '' });
+			// Explicit token request triggered by user gesture
+			function requestToken(forceConsent = false) {
+				if (!tokenClient) initTokenClient();
+				const promptMode = forceConsent ? 'consent' : '';
+				tokenClient.requestAccessToken({ prompt: promptMode });
 			}
 
 			async function fetchSheetData() {
@@ -829,16 +827,12 @@
 				
 			// Show user info and hide sign-in button
 			document.getElementById('user-info').style.display = 'flex';
-			document.querySelector('.g_id_signin').style.display = 'none';				// Clear any existing data to ensure fresh fetch
-				table = [];
-				
-				// Automatically fetch fresh data
-				requestToken();
-				// If an early response was queued before module loaded, process it now (avoid losing credential)
-				if(window._earlyGSIResp){
-					console.log('Processing early queued GSI credential');
-					delete window._earlyGSIResp; // already handled by initial call
-				}
+			document.querySelector('.g_id_signin').style.display = 'none';
+			// Clear any existing data to ensure fresh fetch
+			table = [];
+			// Reveal authorize button for Sheets data
+			const authBtn = document.getElementById('authorize-sheets');
+			if (authBtn) authBtn.style.display = 'inline-block';
 			}
 
 			function decodeJwtResponse(token) {
@@ -908,7 +902,18 @@
 					shape: 'rectangular',
 					text: 'signin_with'
 				});
-				// Optionally prompt (kept manual to avoid auto-popup): google.accounts.id.prompt();
+				// Keep manual prompting to avoid automatic popup blocks: google.accounts.id.prompt();
+				// Ensure authorize button present
+				let authorizeBtn = document.getElementById('authorize-sheets');
+				if (!authorizeBtn) {
+					authorizeBtn = document.createElement('button');
+					authorizeBtn.id = 'authorize-sheets';
+					authorizeBtn.textContent = 'Authorize & Load Data';
+					authorizeBtn.style.display = 'none';
+					authorizeBtn.style.marginLeft = '10px';
+					document.getElementById('auth-container').appendChild(authorizeBtn);
+				}
+				authorizeBtn.onclick = () => requestToken(true);
 			}
 
 			initGoogleId();
