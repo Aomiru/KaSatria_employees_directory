@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "redirects": [
+    { "source": "/", "destination": "/examples/" }
+  ],
+  "headers": [
+    {
+      "source": "/**/*.wasm",
+      "headers": [
+        { "key": "Content-Type", "value": "application/wasm" }
+      ]
+    }
+  ]
+}
