@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+  command = ""
+
+# Redirect root to examples
+[[redirects]]
+  from = "/"
+  to = "/examples/"
+  status = 302
+  force = true
+
+# Set proper headers for wasm assets (Netlify usually does this automatically; kept for explicitness)
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Cache-Control = "public, max-age=31536000, immutable"

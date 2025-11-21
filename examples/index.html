@@ -194,6 +194,14 @@
 			border-radius: 0px;
 		}
 		</style>
+		<!-- Placeholder global callback must exist BEFORE loading GSI script -->
+		<script>
+			// Temporary holder so data-callback finds a function; replaced later in module script
+			window.handleCredentialResponse = function(resp){
+				console.warn('GSI early credential received before main script loaded');
+				window._earlyGSIResp = resp; // stash to process after full logic attaches
+			};
+		</script>
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 	</head>
@@ -843,6 +851,11 @@
 				
 				// Automatically fetch fresh data
 				requestToken();
+				// If an early response was queued before module loaded, process it now (avoid losing credential)
+				if(window._earlyGSIResp){
+					console.log('Processing early queued GSI credential');
+					delete window._earlyGSIResp; // already handled by initial call
+				}
 			}
 
 			function decodeJwtResponse(token) {
@@ -893,6 +906,12 @@
 
 			// Make handleCredentialResponse globally available
 			window.handleCredentialResponse = handleCredentialResponse;
+			// If a credential arrived before definition, process it now
+			if(window._earlyGSIResp){
+				console.log('Late binding: handling queued GSI credential');
+				handleCredentialResponse(window._earlyGSIResp);
+				delete window._earlyGSIResp;
+			}
 
 		</script>
 	</body>
