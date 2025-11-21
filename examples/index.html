@@ -531,7 +531,18 @@
 					hint: selectedEmail || undefined,
 					callback: (resp) => {
 						if (resp.error) {
+							// If first-time on this origin, Google may require consent
+							if (resp.error === 'consent_required' || resp.error === 'interaction_required' || resp.error === 'access_denied') {
+								try {
+									// Re-request with explicit consent prompt
+									tokenClient.requestAccessToken({ prompt: 'consent' });
+								} catch (e) {
+									console.error('Re-requesting consent failed:', e);
+								}
+								return;
+							}
 							console.error(`Authentication failed: ${resp.error}`);
+							alert(`Google authorization failed: ${resp.error}`);
 							return;
 						}
 						accessToken = resp.access_token;

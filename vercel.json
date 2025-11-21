@@ -1,11 +1,12 @@
 {
   "version": 2,
+  "outputDirectory": ".",
   "redirects": [
     { "source": "/", "destination": "/examples/" }
   ],
   "headers": [
     {
-      "source": "/**/*.wasm",
+      "source": "/(.*)\\.wasm",
       "headers": [
         { "key": "Content-Type", "value": "application/wasm" }
       ]
