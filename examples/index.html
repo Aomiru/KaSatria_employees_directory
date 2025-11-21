@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>three.js css3d - periodic table</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			a {
+				color: #8ff;
+			}
+
+			#menu {
+				position: absolute;
+				bottom: 20px;
+				left: 0;
+				width: 100%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-wrap: wrap;
+				gap: 16px;
+				padding: 0 20px;
+				box-sizing: border-box;
+				text-align: center;
+			}
+
+			#menu .buttons {
+				display: flex;
+				gap: 10px;
+				flex-wrap: wrap;
+				justify-content: center;
+			}
+
+			.element {
+				width: 120px;
+				height: 160px;
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.5);
+				border: 1px solid rgba(127,255,255,0.25);
+				font-family: Helvetica, sans-serif;
+				text-align: center;
+				line-height: normal;
+				cursor: default;
+			}
+
+			.element:hover {
+				box-shadow: 0px 0px 12px rgba(0,255,255,0.75);
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+				.element .number {
+					position: absolute;
+					top: 20px;
+					right: 20px;
+					font-size: 12px;
+					color: rgba(127,255,255,0.75);
+				}
+
+				.element .symbol {
+					position: absolute;
+					top: 40px;
+					left: 0px;
+					right: 0px;
+					font-size: 60px;
+					font-weight: bold;
+					color: rgba(255,255,255,0.75);
+					text-shadow: 0 0 10px rgba(0,255,255,0.95);
+				}
+
+				.element .details {
+					position: absolute;
+					bottom: 15px;
+					left: 0px;
+					right: 0px;
+					font-size: 12px;
+					color: rgba(127,255,255,0.75);
+				}
+
+			button {
+				color: rgba(127,255,255,0.75);
+				background: transparent;
+				outline: 1px solid rgba(127,255,255,0.75);
+				border: 0px;
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background-color: rgba(0,255,255,0.5);
+			}
+
+			button:active {
+				color: #000000;
+				background-color: rgba(0,255,255,0.75);
+			}
+
+			#auth-container {
+				position: absolute;
+				top: 20px;
+				right: 20px;
+				z-index: 100;
+			}
+
+			#user-info {
+				background: rgba(0,127,127,0.9);
+				padding: 12px;
+				color: white;
+				font-family: Helvetica, sans-serif;
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				min-width: 300px;
+				border: 1px solid rgba(127,255,255,0.75);
+			}
+
+			#user-avatar {
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+				object-fit: cover;
+				border: 2px solid rgba(255,255,255,0.3);
+			}
+
+			#user-details {
+				flex: 1;
+			}
+
+			#user-name {
+				font-size: 13px;
+				font-weight: bold;
+				margin: 0;
+				color: #fff;
+			}
+
+			#user-email {
+				font-size: 12px;
+				color: rgba(255,255,255,0.8);
+				margin: 0 0 0 0;
+			}
+
+			#sign-out {
+				background: rgba(255,255,255,0.2);
+				border: 1px solid rgba(255,255,255,0.3);
+				color: white;
+				font-size: 20px;
+				padding: 8px;
+				cursor: pointer;
+				width: 36px;
+				height: 36px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: background-color 0.3s ease;
+			}
+
+			#sign-out:hover {
+				background: rgba(255,255,255,0.3);
+			}
+
+	#legend {
+		color: rgba(127,255,255,0.75);
+		font-family: Arial, sans-serif;
+		font-size: 12px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: nowrap;
+	}
+	#legend h4 {
+		margin: 0;
+		color: rgba(127,255,255,0.75);
+		font-size: 14px;
+		white-space: nowrap;
+	}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			margin: 0;
+			white-space: nowrap;
+		}
+
+		.gradient-bar { 
+			background: linear-gradient(90deg, 
+				rgba(139, 0, 0, 0.8) 0%,
+				rgba(255, 69, 0, 0.8) 33%,
+				rgba(255, 140, 0, 0.8) 50%,
+				rgba(154, 205, 50, 0.8) 66%,
+				rgba(34, 139, 34, 0.8) 100%
+			);
+			width: 200px;
+			height: 20px;
+			border: 1px solid rgba(127,255,255,0.75);
+			border-radius: 0px;
+		}
+		</style>
+		<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+	</head>
+	<body>
+
+		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - KaSatria employee directory.</div>
+		<div id="container"></div>
+		<div id="menu">
+			<div class="buttons">
+				<button id="table">TABLE</button>
+				<button id="sphere">SPHERE</button>
+				<button id="helix">HELIX</button>
+				<button id="grid">GRID</button>
+			</div>
+			<div id="legend">
+				<h4>Net Worth:</h4>
+				<span>< $100K</span>
+				<div class="gradient-bar"></div>
+				<span>≥ $200K</span>
+			</div>
+		</div>
+	
+	<!-- Google Sign-In -->
+		<div id="auth-container">
+			<div id="g_id_onload"
+				data-client_id="679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com"
+				data-callback="handleCredentialResponse"
+				data-auto_prompt="false">
+			</div>
+			<div class="g_id_signin" 
+				data-type="standard"
+				data-theme="filled_blue"
+				data-size="large"
+				data-text="signin_with"
+				data-shape="rectangular">
+			</div>
+			<div id="user-info" style="display: none;">
+				<img id="user-avatar" src="" alt="User Avatar">
+				<div id="user-details">
+					<p id="user-name"></p>
+					<p id="user-email"></p>
+				</div>
+				<button id="sign-out" title="Sign Out">⇥</button>
+			</div>
+		</div>
+
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+
+			import TWEEN from 'three/addons/libs/tween.module.js';
+			import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
+			import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+			// Employee data - will be populated from Google Sheets after login only
+			let table = [];
+
+			// Note: No sample data - users must login to see any employee data
+
+			let camera, scene, renderer;
+			let controls;
+
+			const objects = [];
+			const targets = { table: [], sphere: [], helix: [], grid: [] };
+
+			init();
+			animate();
+
+			// Data will only be loaded after user login
+
+			function init() {
+
+				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.z = 3000;
+
+				scene = new THREE.Scene();
+
+				// Initialize empty table (will be populated after login)
+				for ( let i = 0; i < table.length; i += 3 ) {
+					const element = document.createElement( 'div' );
+					element.className = 'element';
+					element.style.backgroundColor = 'rgba(0,127,127,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+
+					const number = document.createElement( 'div' );
+					number.className = 'number';
+					number.textContent = ( i / 3 ) + 1;
+					element.appendChild( number );
+
+					const symbol = document.createElement( 'div' );
+					symbol.className = 'symbol';
+					symbol.textContent = table[ i ];
+					element.appendChild( symbol );
+
+					const details = document.createElement( 'div' );
+					details.className = 'details';
+					details.innerHTML = table[ i + 1 ] + '<br>' + table[ i + 2 ];
+					element.appendChild( details );
+
+					const objectCSS = new CSS3DObject( element );
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+					scene.add( objectCSS );
+
+					objects.push( objectCSS );
+
+					// 20x10 grid positions
+					const employeeIndex = i / 3;
+					const object = new THREE.Object3D();
+					const col = employeeIndex % 20;
+					const row = Math.floor(employeeIndex / 20);
+					
+					object.position.x = (col * 140) - (19 * 140 / 2);
+					object.position.y = -(row * 180) + (9 * 180 / 2);
+
+					targets.table.push( object );
+				}
+
+			// Generate sphere positions
+			const vector = new THREE.Vector3();
+			for ( let i = 0, l = objects.length; i < l; i ++ ) {
+				const phi = Math.acos( - 1 + ( 2 * i ) / l );
+				const theta = Math.sqrt( l * Math.PI ) * phi;
+				const object = new THREE.Object3D();
+				object.position.setFromSphericalCoords( 800, phi, theta );
+				vector.copy( object.position ).multiplyScalar( 2 );
+				object.lookAt( vector );
+				targets.sphere.push( object );
+			}
+
+			// helix - double helix DNA-like structure
+
+			const helixRadius = 600;
+			const helixSpacing = 16;
+			const helixRotation = 0.175;
+
+			for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+				const object = new THREE.Object3D();
+				const halfLength = Math.floor( l / 2 );
+				const halfHeight = ( halfLength * helixSpacing ) / 2;
+
+				if ( i < halfLength ) {
+
+					// First strand - clockwise helix
+					const theta = i * helixRotation + Math.PI;
+					const y = - ( i * helixSpacing ) + halfHeight;
+					object.position.setFromCylindricalCoords( helixRadius, theta, y );
+
+				} else {
+
+					// Second strand - counter-clockwise helix
+					const adjustedIndex = i - halfLength;
+					const theta = - adjustedIndex * helixRotation + Math.PI;
+					const y = - ( adjustedIndex * helixSpacing ) + halfHeight;
+					object.position.setFromCylindricalCoords( helixRadius, theta, y );
+
+				}
+
+				vector.x = object.position.x;
+				vector.y = object.position.y;
+				vector.z = object.position.z;
+				object.lookAt( vector );
+				targets.helix.push( object );
+
+			}
+			
+			// Generate 3D grid positions (5x4x10)
+				for ( let i = 0; i < objects.length; i ++ ) {
+					const object = new THREE.Object3D();
+					// 5 columns (X), 4 rows (Y), 10 layers (Z) = 5x4x10 = 200 positions
+					const x = i % 5; // 0-4 columns
+					const y = Math.floor( i / 5 ) % 4; // 0-3 rows
+					const z = Math.floor( i / 20 ); // 0-9 layers (5*4=20 per layer)
+					
+					object.position.x = ( x * 300 ) - 600; // Center the 5 columns
+					object.position.y = - ( y * 250 ) + 375; // Center the 4 rows
+					object.position.z = ( z * 300 ) - 1350; // Center the 10 layers
+					targets.grid.push( object );
+				}
+
+				// Initialize renderer and controls
+				renderer = new CSS3DRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+				controls = new TrackballControls( camera, renderer.domElement );
+				controls.minDistance = 500;
+				controls.maxDistance = 6000;
+				controls.addEventListener( 'change', render );
+
+				const buttonTable = document.getElementById( 'table' );
+				buttonTable.addEventListener( 'click', function () {
+
+					transform( targets.table, 2000 );
+
+				} );
+
+				const buttonSphere = document.getElementById( 'sphere' );
+				buttonSphere.addEventListener( 'click', function () {
+
+					transform( targets.sphere, 2000 );
+
+				} );
+
+				const buttonHelix = document.getElementById( 'helix' );
+				buttonHelix.addEventListener( 'click', function () {
+
+					transform( targets.helix, 2000 );
+
+				} );
+
+				const buttonGrid = document.getElementById( 'grid' );
+				buttonGrid.addEventListener( 'click', function () {
+
+					transform( targets.grid, 2000 );
+
+			} );
+
+			transform( targets.table, 2000 );				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+				// Show welcome message after initialization (since table is empty)
+				showWelcomeMessage();
+
+			}
+
+			function transform( targets, duration ) {
+				TWEEN.removeAll();
+
+				for ( let i = 0; i < objects.length; i ++ ) {
+					const object = objects[ i ];
+					const target = targets[ i ];
+
+					new TWEEN.Tween( object.position )
+						.to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+
+					new TWEEN.Tween( object.rotation )
+						.to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+						.easing( TWEEN.Easing.Exponential.InOut )
+						.start();
+				}
+
+				new TWEEN.Tween( this )
+					.to( {}, duration * 2 )
+					.onUpdate( render )
+					.start();
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				render();
+			}
+
+			function animate() {
+				requestAnimationFrame( animate );
+				TWEEN.update();
+				controls.update();
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+			function showWelcomeMessage(isReturningUser = false) {
+				// Clear existing scene
+				while(scene.children.length > 0) {
+					scene.remove(scene.children[0]);
+				}
+				
+				// Clear object arrays
+				objects.length = 0;
+				targets.table.length = 0;
+				targets.sphere.length = 0;
+				targets.helix.length = 0;
+				targets.grid.length = 0;
+				
+			// Create welcome message element
+			const welcomeElement = document.createElement('div');
+			welcomeElement.style.width = '600px';
+			welcomeElement.style.backgroundColor = 'rgba(0, 127, 127, 0.75)';
+			welcomeElement.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+			welcomeElement.style.color = 'white';
+			welcomeElement.style.textAlign = 'center';
+			welcomeElement.style.padding = '40px';
+			welcomeElement.style.fontFamily = 'Arial, sans-serif';			
+			
+				if (isReturningUser) {
+					welcomeElement.innerHTML = `
+						<h2 style="margin: 0 0 10px 0; color: white; text-align: center; width: 100%;">👋 Welcome Back!</h2>
+						<p style="font-size: 18px; margin: 20px 0; text-align: center; width: 100%;">Please sign in again.</p>
+						<p style="font-size: 14px; color: #cccccc; margin: 0; text-align: center; width: 100%;">Your visualization will be updated with fresh data once you sign in.</p>
+					`;
+				} else {
+					welcomeElement.innerHTML = `
+						<h2 style="margin: 0 0 10px 0; color: white; text-align: center; width: 100%;">KaSatria Employee Directory Visualization</h2>
+						<p style="font-size: 18px; margin: 20px 0; text-align: center; width: 100%;">Welcome! Please sign in with Google to load employee data.</p>
+					`;
+				}
+
+				const welcomeObject = new CSS3DObject(welcomeElement);
+				welcomeObject.position.set(0, 0, 0);
+				scene.add(welcomeObject);
+				objects.push(welcomeObject);
+				
+				render();
+			}
+
+			// Google Sign-In functionality
+			let tokenClient;
+			let accessToken = null;
+			let hasLoggedInBefore = false;
+            let selectedEmail = null;
+
+			function initTokenClient() {
+				tokenClient = google.accounts.oauth2.initTokenClient({
+					client_id: '679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com',
+					scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+					// Use the selected email to avoid a second account chooser
+					hint: selectedEmail || undefined,
+					callback: (resp) => {
+						if (resp.error) {
+							console.error(`Authentication failed: ${resp.error}`);
+							return;
+						}
+						accessToken = resp.access_token;
+						// Now we can fetch the sheet
+						fetchSheetData();
+					},
+				});
+			}
+
+			// Automatic token request function (called after sign in)
+			function requestToken() {
+				if (!tokenClient) {
+					initTokenClient();
+				}
+				// Request token without re-showing the account chooser if possible
+				tokenClient.requestAccessToken({ prompt: '' });
+			}
+
+			async function fetchSheetData() {
+				const sheetId = '1XTLJSHtQMQjbZ8wiuBxNfNMBPYGJdLq3GTRYMIeVrlw';
+				const range = 'Data Template!A1:F1000'; // adjust range & sheet name
+				const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`;
+
+				try {
+					const res = await fetch(url, {
+						headers: {
+							'Authorization': 'Bearer ' + accessToken
+						}
+					});
+					
+					if (!res.ok) {
+						const errorText = await res.text();
+						throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
+					}
+					
+					const data = await res.json();
+				
+				if (!data.values || data.values.length === 0) {
+					console.log('No data found in the Google Sheet. Please check if the sheet contains data.');
+					return;
+				}
+				
+				// data.values is an array of rows [ [col1, col2,...], ... ]
+				// convert to objects using header row:
+				const headers = data.values[0];
+				const rows = data.values.slice(1);
+				
+				const objects = rows.map(r => {
+						const obj = {};
+						headers.forEach((h,i) => obj[h] = r[i] || '');
+						return obj;
+					});
+			
+			// now feed objects into the three.js demo
+			populateThreeData(objects);
+			
+			// Log success message
+			console.log(`✅ Success! Loaded ${objects.length} employees from Google Sheets and updated the visualization! Use the GRID/SPHERE/HELIX/RANDOM buttons to change layouts.`);
+			
+		} catch (error) {
+			// Show detailed error to user
+			console.error('Error loading sheet data:', error);
+			console.log(`Error loading sheet data: ${error.message}. Check browser console for detailed error information.`);
+				}
+			}
+
+		function populateThreeData(sheetData) {
+			// Convert employee data to visualization format
+			const newTableData = [];				sheetData.forEach((employee, index) => {
+					// Map employee data to display format
+					const name = employee.Name || employee.name || '';
+					const photo = employee.Photo || employee.photo || '';
+					const age = employee.Age || employee.age || '';
+					const country = employee.Country || employee.country || '';
+					const interest = employee.Interest || employee.interest || '';
+					const netWorth = employee['Net Worth'] || employee.netWorth || employee.net_worth || '';
+					
+					// Create display data: [name, details_line1, details_line2]
+					const displayName = name.split(' ')[0] || `Employee ${index + 1}`;
+					const detailsLine1 = `${age} yrs, ${country}`;
+					const detailsLine2 = `${interest}<br>${netWorth}`;
+					
+					newTableData.push(displayName, detailsLine1, detailsLine2);
+				});
+				
+				// Update global table variable
+				table = newTableData;
+				
+				// Store employee photos for later use
+				window.employeeData = sheetData;
+				
+				// Recreate the visualization with new employee data
+				createEmployeeElementsFromData(table, sheetData);
+			}
+
+			function createEmployeeElementsFromData(tableData, employeeData) {
+				// Function to get gradient background color based on net worth
+				function getNetWorthColor(netWorthString) {
+					// Remove dollar signs, commas, and convert to number
+					const netWorth = parseFloat(netWorthString.replace(/[$,]/g, '')) || 0;
+					
+					let r, g, b;
+					
+					if (netWorth < 100000) {
+						// Red zone: < $100K
+						// Gradient from dark red (low) to bright orange-red (close to 100K)
+						const ratio = Math.min(netWorth / 100000, 1); // 0 to 1
+						// Dark red (139,0,0) -> Bright red-orange (255,69,0)
+						r = Math.round(139 + (255 - 139) * ratio);
+						g = Math.round(0 + (69 - 0) * ratio);
+						b = 0;
+					} else if (netWorth < 200000) {
+						// Orange zone: $100K - $200K
+						// Gradient from orange (255,140,0) to yellow-green (154,205,50)
+						const ratio = (netWorth - 100000) / 100000; // 0 to 1
+						// Orange (255,140,0) -> Yellow-green (154,205,50)
+						r = Math.round(255 - (255 - 154) * ratio);
+						g = Math.round(140 + (205 - 140) * ratio);
+						b = Math.round(0 + (50 - 0) * ratio);
+					} else {
+						// Green zone: >= $200K
+						// Gradient from yellow-green (154,205,50) to forest green (34,139,34)
+						const ratio = Math.min((netWorth - 200000) / 200000, 1); // 0 to 1, capped at 1
+						// Yellow-green (154,205,50) -> Forest green (34,139,34)
+						r = Math.round(154 - (154 - 34) * ratio);
+						g = Math.round(205 - (205 - 139) * ratio);
+						b = Math.round(50 - (50 - 34) * ratio);
+					}
+					
+					return `rgba(${r}, ${g}, ${b}, 0.8)`;
+				}
+				
+				// Clear existing objects
+				objects.length = 0;
+				targets.table.length = 0;
+				targets.sphere.length = 0;
+				targets.helix.length = 0;
+				targets.grid.length = 0;
+
+				// Remove existing objects from scene
+				while(scene.children.length > 0) {
+					scene.remove(scene.children[0]);
+				}
+
+				// Create employee cards from table data
+				for ( let i = 0; i < tableData.length; i += 3 ) {
+					const employeeIndex = i / 3;
+					const employee = employeeData[employeeIndex] || {};
+
+					const element = document.createElement( 'div' );
+					element.className = 'element';
+					
+					// Get net worth for color coding
+					const netWorth = employee['Net Worth'] || employee.netWorth || employee.net_worth || '0';
+					element.style.backgroundColor = getNetWorthColor(netWorth);
+
+					// Employee number
+					const number = document.createElement( 'div' );
+					number.className = 'number';
+					number.textContent = employeeIndex + 1;
+					element.appendChild( number );
+
+					// Employee photo (if available)
+					if (employee.Photo || employee.photo) {
+						const photo = document.createElement( 'img' );
+						photo.style.width = '60px';
+						photo.style.height = '60px';
+						photo.style.borderRadius = '50%';
+						photo.style.objectFit = 'cover';
+						photo.style.position = 'absolute';
+						photo.style.top = '35px';
+						photo.style.left = '30px';
+						photo.style.border = '2px solid rgba(255,255,255,0.5)';
+						photo.src = employee.Photo || employee.photo;
+						photo.alt = tableData[ i ] || 'Employee';
+						element.appendChild( photo );
+					} else {
+						// Name as symbol if no photo
+						const symbol = document.createElement( 'div' );
+						symbol.className = 'symbol';
+						symbol.style.fontSize = '30px';
+						symbol.textContent = tableData[ i ];
+						element.appendChild( symbol );
+					}
+
+					// Employee details
+					const details = document.createElement( 'div' );
+					details.className = 'details';
+					details.innerHTML = tableData[ i + 1 ] + '<br>' + tableData[ i + 2 ];
+					element.appendChild( details );
+
+					const objectCSS = new CSS3DObject( element );
+					objectCSS.position.x = Math.random() * 4000 - 2000;
+					objectCSS.position.y = Math.random() * 4000 - 2000;
+					objectCSS.position.z = Math.random() * 4000 - 2000;
+					scene.add( objectCSS );
+
+					objects.push( objectCSS );
+
+					// Table positions (20x10 grid layout)
+					const object = new THREE.Object3D();
+					// Arrange in 20 columns x 10 rows grid
+					const col = employeeIndex % 20; // 0-19 columns
+					const row = Math.floor(employeeIndex / 20); // 0-9 rows
+					
+					object.position.x = (col * 140) - (19 * 140 / 2); // Center the 20-column grid
+					object.position.y = -(row * 180) + (9 * 180 / 2); // Center the 10-row grid
+
+					targets.table.push( object );
+				}
+
+				// Generate sphere positions
+				const vector = new THREE.Vector3();
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
+					const phi = Math.acos( - 1 + ( 2 * i ) / l );
+					const theta = Math.sqrt( l * Math.PI ) * phi;
+					const object = new THREE.Object3D();
+					object.position.setFromSphericalCoords( 800, phi, theta );
+					vector.copy( object.position ).multiplyScalar( 2 );
+					object.lookAt( vector );
+					targets.sphere.push( object );
+				}
+
+			// Generate double helix positions (DNA-like)
+			const helixRadius = 900;
+			const helixSpacing = 16;
+			const helixRotation = 0.175;
+
+			for ( let i = 0, l = objects.length; i < l; i ++ ) {
+
+				const object = new THREE.Object3D();
+				const halfLength = Math.floor( l / 2 );
+				const halfHeight = ( halfLength * helixSpacing ) / 2;
+
+				if ( i < halfLength ) {
+
+					// First strand - clockwise helix
+					const theta = i * helixRotation + Math.PI;
+					const y = - ( i * helixSpacing ) + halfHeight;
+					object.position.setFromCylindricalCoords( helixRadius, theta, y );
+
+				} else {
+
+					// Second strand - counter-clockwise helix
+					const adjustedIndex = i - halfLength;
+					const theta = - adjustedIndex * helixRotation + Math.PI;
+					const y = - ( adjustedIndex * helixSpacing ) + halfHeight;
+					object.position.setFromCylindricalCoords( helixRadius, theta, y );
+
+				}
+
+				vector.x = object.position.x * 2;
+				vector.y = object.position.y;
+				vector.z = object.position.z * 2;
+				object.lookAt( vector );
+				targets.helix.push( object );
+
+			}
+			// Generate 3D grid positions (5x4x10)
+				for ( let i = 0; i < objects.length; i ++ ) {
+					const object = new THREE.Object3D();
+					// 5 columns (X), 4 rows (Y), 10 layers (Z) = 5x4x10 = 200 positions
+					const x = i % 5; // 0-4 columns
+					const y = Math.floor( i / 5 ) % 4; // 0-3 rows
+					const z = Math.floor( i / 20 ); // 0-9 layers (5*4=20 per layer)
+					
+					object.position.x = ( x * 300 ) - 600; // Center the 5 columns
+					object.position.y = - ( y * 250 ) + 375; // Center the 4 rows
+					object.position.z = ( z * 300 ) - 1350; // Center the 10 layers
+					targets.grid.push( object );
+				}
+
+				// Start with table layout
+				transform( targets.table, 2000 );
+			}
+
+			function handleCredentialResponse(response) {
+				// Decode the JWT token
+				const responsePayload = decodeJwtResponse(response.credential);
+				
+				// Mark that user has logged in
+				hasLoggedInBefore = true;
+				selectedEmail = responsePayload.email || null;
+				
+				// Update user info display
+				document.getElementById('user-name').textContent = responsePayload.name;
+				document.getElementById('user-email').textContent = responsePayload.email;
+				document.getElementById('user-avatar').src = responsePayload.picture;
+				
+				// Remove welcome message
+				const welcomeMsg = document.getElementById('welcome-message');
+				if (welcomeMsg) welcomeMsg.remove();
+				
+			// Show user info and hide sign-in button
+			document.getElementById('user-info').style.display = 'flex';
+			document.querySelector('.g_id_signin').style.display = 'none';				// Clear any existing data to ensure fresh fetch
+				table = [];
+				
+				// Automatically fetch fresh data
+				requestToken();
+			}
+
+			function decodeJwtResponse(token) {
+				const base64Url = token.split('.')[1];
+				const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+				const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+				}).join(''));
+				return JSON.parse(jsonPayload);
+			}
+
+			// Sign out functionality
+			document.addEventListener('DOMContentLoaded', function() {
+				const signOutButton = document.getElementById('sign-out');
+				if (signOutButton) {
+					signOutButton.addEventListener('click', function() {
+					google.accounts.id.disableAutoSelect();
+					document.getElementById('user-info').style.display = 'none';
+					document.querySelector('.g_id_signin').style.display = 'block';
+					// Clear user data
+						document.getElementById('user-name').textContent = '';
+						document.getElementById('user-email').textContent = '';
+						document.getElementById('user-avatar').src = '';
+						// Reset token data
+						accessToken = null;
+						tokenClient = null;
+						selectedEmail = null;
+						// Reset login status to show fresh welcome message next time
+						hasLoggedInBefore = false;
+						// Clear scene completely
+						while(scene.children.length > 0) {
+							scene.remove(scene.children[0]);
+						}
+						// Reset all arrays
+						table = [];
+						objects.length = 0;
+						targets.table.length = 0;
+						targets.sphere.length = 0;
+						targets.helix.length = 0;
+						targets.grid.length = 0;
+						// Clear any cached data and show welcome message
+						window.employeeData = null;
+						// Show fresh welcome message (not welcome back since we reset the flag)
+						showWelcomeMessage(false);
+					});
+				}
+			});
+
+			// Make handleCredentialResponse globally available
+			window.handleCredentialResponse = handleCredentialResponse;
+
+		</script>
+	</body>
+</html>
