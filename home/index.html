@@ -95,68 +95,7 @@
 				background-color: rgba(0,255,255,0.75);
 			}
 
-			#auth-container {
-				position: absolute;
-				top: 20px;
-				right: 20px;
-				z-index: 100;
-			}
 
-			#user-info {
-				background: rgba(0,127,127,0.9);
-				padding: 12px;
-				color: white;
-				font-family: Helvetica, sans-serif;
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				min-width: 300px;
-				border: 1px solid rgba(127,255,255,0.75);
-			}
-
-			#user-avatar {
-				width: 40px;
-				height: 40px;
-				border-radius: 50%;
-				object-fit: cover;
-				border: 2px solid rgba(255,255,255,0.3);
-			}
-
-			#user-details {
-				flex: 1;
-			}
-
-			#user-name {
-				font-size: 13px;
-				font-weight: bold;
-				margin: 0;
-				color: #fff;
-			}
-
-			#user-email {
-				font-size: 12px;
-				color: rgba(255,255,255,0.8);
-				margin: 0 0 0 0;
-			}
-
-			#sign-out {
-				background: rgba(255,255,255,0.2);
-				border: 1px solid rgba(255,255,255,0.3);
-				color: white;
-				font-size: 20px;
-				padding: 8px;
-				cursor: pointer;
-				width: 36px;
-				height: 36px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				transition: background-color 0.3s ease;
-			}
-
-			#sign-out:hover {
-				background: rgba(255,255,255,0.3);
-			}
 
 	#legend {
 		position: absolute;
@@ -221,10 +160,10 @@
 
 		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - KaSatria employee directory.</div>
 
-		<!-- Plain login overlay  -->
+		<!-- Login overlay -->
 		<div id="login-overlay">
-			<h2>Welcome KaSatria Employee Directory</h2>
-			<p>Sign in to load the KaSatria employee 3D visualization</p>
+			<h2>Welcome to KaSatria Employee</h2>
+			<p>Sign in to load the 3D employee visualization</p>
 			<div id="g_id_onload"
 				 data-client_id="679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com"
 				 data-callback="handleCredentialResponse"
@@ -269,10 +208,8 @@
 			import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
 			import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 
-			// Employee data - will be populated from Google Sheets after login only
+			// Data placeholders populated after successful sign-in & sheet fetch
 			let table = [];
-
-			// Note: No sample data - users must login to see any employee data
 
 			let camera, scene, renderer;
 			let controls;
@@ -283,8 +220,6 @@
 			init();
 			animate();
 
-			// Data will only be loaded after user login
-
 			function init() {
 
 				camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -292,89 +227,8 @@
 
 				scene = new THREE.Scene();
 
-				// Initialize empty table (will be populated after login)
-				for ( let i = 0; i < table.length; i += 3 ) {
-					const element = document.createElement( 'div' );
-					element.className = 'element';
-					element.style.backgroundColor = 'rgba(0,127,127,' + ( Math.random() * 0.5 + 0.25 ) + ')';
-
-					const number = document.createElement( 'div' );
-					number.className = 'number';
-					number.textContent = ( i / 3 ) + 1;
-					element.appendChild( number );
-
-					const symbol = document.createElement( 'div' );
-					symbol.className = 'symbol';
-					symbol.textContent = table[ i ];
-					element.appendChild( symbol );
-
-					const details = document.createElement( 'div' );
-					details.className = 'details';
-					details.innerHTML = table[ i + 1 ] + '<br>' + table[ i + 2 ];
-					element.appendChild( details );
-
-					const objectCSS = new CSS3DObject( element );
-					objectCSS.position.x = Math.random() * 4000 - 2000;
-					objectCSS.position.y = Math.random() * 4000 - 2000;
-					objectCSS.position.z = Math.random() * 4000 - 2000;
-					scene.add( objectCSS );
-
-					objects.push( objectCSS );
-
-					// 20x10 grid positions
-					const employeeIndex = i / 3;
-					const object = new THREE.Object3D();
-					const col = employeeIndex % 20;
-					const row = Math.floor(employeeIndex / 20);
-					
-					object.position.x = (col * 140) - (19 * 140 / 2);
-					object.position.y = -(row * 180) + (9 * 180 / 2);
-
-					targets.table.push( object );
-				}
-
-			// Generate sphere positions
-			const vector = new THREE.Vector3();
-			for ( let i = 0, l = objects.length; i < l; i ++ ) {
-				const phi = Math.acos( - 1 + ( 2 * i ) / l );
-				const theta = Math.sqrt( l * Math.PI ) * phi;
-				const object = new THREE.Object3D();
-				object.position.setFromSphericalCoords( 800, phi, theta );
-				vector.copy( object.position ).multiplyScalar( 2 );
-				object.lookAt( vector );
-				targets.sphere.push( object );
-			}
-
-			// helix - paired objects around a single cylindrical helix
-			for ( let i = 0, l = objects.length; i < l; i ++ ) {
-				const row = Math.floor( i / 2 );
-				let theta = row * 0.2 + Math.PI;
-				if ( i % 2 === 1 ) {
-					theta += Math.PI;
-				}
-				const y = - ( row * 30 ) + 450;
-				const object = new THREE.Object3D();
-				object.position.setFromCylindricalCoords( 900, theta, y );
-				vector.x = object.position.x * 2;
-				vector.y = object.position.y;
-				vector.z = object.position.z * 2;
-				object.lookAt( vector );
-				targets.helix.push( object );
-			}
-			
-			// Generate 3D grid positions (5x4x10)
-				for ( let i = 0; i < objects.length; i ++ ) {
-					const object = new THREE.Object3D();
-					// 5 columns (X), 4 rows (Y), 10 layers (Z) = 5x4x10 = 200 positions
-					const x = i % 5; // 0-4 columns
-					const y = Math.floor( i / 5 ) % 4; // 0-3 rows
-					const z = Math.floor( i / 20 ); // 0-9 layers (5*4=20 per layer)
-					
-					object.position.x = ( x * 300 ) - 600; // Center the 5 columns
-					object.position.y = - ( y * 250 ) + 375; // Center the 4 rows
-					object.position.z = ( z * 300 ) - 1350; // Center the 10 layers
-					targets.grid.push( object );
-				}
+				// Build initial empty layout arrays (actual employees load after sign-in)
+				generateLayouts();
 
 				// Initialize renderer and controls
 				renderer = new CSS3DRenderer();
@@ -386,35 +240,16 @@
 				controls.maxDistance = 6000;
 				controls.addEventListener( 'change', render );
 
-				const buttonTable = document.getElementById( 'table' );
-				buttonTable.addEventListener( 'click', function () {
+				const bindLayout = (id, target) => {
+					const btn = document.getElementById(id);
+					if (btn) btn.addEventListener('click', () => transform(target, 2000));
+				};
+				bindLayout('table', targets.table);
+				bindLayout('sphere', targets.sphere);
+				bindLayout('helix', targets.helix);
+				bindLayout('grid', targets.grid);
 
-					transform( targets.table, 2000 );
-
-				} );
-
-				const buttonSphere = document.getElementById( 'sphere' );
-				buttonSphere.addEventListener( 'click', function () {
-
-					transform( targets.sphere, 2000 );
-
-				} );
-
-				const buttonHelix = document.getElementById( 'helix' );
-				buttonHelix.addEventListener( 'click', function () {
-
-					transform( targets.helix, 2000 );
-
-				} );
-
-				const buttonGrid = document.getElementById( 'grid' );
-				buttonGrid.addEventListener( 'click', function () {
-
-					transform( targets.grid, 2000 );
-
-			} );
-
-			transform( targets.table, 2000 );
+				if (objects.length) transform(targets.table, 2000);
 
 				window.addEventListener( 'resize', onWindowResize );
 
@@ -467,6 +302,86 @@
 			const SHEET_RANGE = 'Data Template!A1:F1000';
 			const API_KEY = 'AIzaSyBWwkCCjgtOwJ-v55ToH2j3N_Te4ZFDOkk';
 
+			function getNetWorthColor(netWorthString) {
+				const netWorth = parseFloat(String(netWorthString || '0').replace(/[$,]/g, '')) || 0;
+				let r, g, b;
+				if (netWorth < 100000) {
+					const ratio = Math.min(netWorth / 100000, 1);
+					r = Math.round(139 + (255 - 139) * ratio);
+					g = Math.round(0 + (69 - 0) * ratio);
+					b = 0;
+				} else if (netWorth < 200000) {
+					const ratio = (netWorth - 100000) / 100000;
+					r = Math.round(255 - (255 - 154) * ratio);
+					g = Math.round(140 + (205 - 140) * ratio);
+					b = Math.round(0 + (50 - 0) * ratio);
+				} else {
+					const ratio = Math.min((netWorth - 200000) / 200000, 1);
+					r = Math.round(154 - (154 - 34) * ratio);
+					g = Math.round(205 - (205 - 139) * ratio);
+					b = Math.round(50 - (50 - 34) * ratio);
+				}
+				return `rgba(${r}, ${g}, ${b}, 0.8)`;
+			}
+
+			function generateLayouts() {
+				// Reset layout targets
+				targets.table.length = 0;
+				targets.sphere.length = 0;
+				targets.helix.length = 0;
+				targets.grid.length = 0;
+				// Table (20 x 10)
+				for (let i = 0; i < objects.length; i++) {
+					const obj = new THREE.Object3D();
+					const col = i % 20;
+					const row = Math.floor(i / 20);
+					obj.position.x = (col * 140) - (19 * 140 / 2);
+					obj.position.y = -(row * 180) + (9 * 180 / 2);
+					targets.table.push(obj);
+				}
+				// Sphere
+				const vector = new THREE.Vector3();
+				for (let i = 0, l = objects.length; i < l; i++) {
+					const phi = Math.acos(-1 + (2 * i) / l);
+					const theta = Math.sqrt(l * Math.PI) * phi;
+					const obj = new THREE.Object3D();
+					obj.position.setFromSphericalCoords(800, phi, theta);
+					vector.copy(obj.position).multiplyScalar(2);
+					obj.lookAt(vector);
+					targets.sphere.push(obj);
+				}
+				// Helix
+				// Centered vertically: compute total helix height then offset rows so midpoint is at y=0
+				const helixSpacing = 30;
+				const totalPairs = Math.ceil(objects.length / 2);
+				const helixHeight = (totalPairs - 1) * helixSpacing;
+				const centerOffset = helixHeight / 2;
+				for (let i = 0, l = objects.length; i < l; i++) {
+					const row = Math.floor(i / 2);
+					let theta = row * 0.2 + Math.PI;
+					if (i % 2 === 1) theta += Math.PI;
+					const y = - (row * helixSpacing - centerOffset); // y centered around 0
+					const obj = new THREE.Object3D();
+					obj.position.setFromCylindricalCoords(900, theta, y);
+					vector.x = obj.position.x * 2;
+					vector.y = obj.position.y;
+					vector.z = obj.position.z * 2;
+					obj.lookAt(vector);
+					targets.helix.push(obj);
+				}
+				// 3D Grid (5 x 4 x 10)
+				for (let i = 0; i < objects.length; i++) {
+					const obj = new THREE.Object3D();
+					const x = i % 5;
+					const y = Math.floor(i / 5) % 4;
+					const z = Math.floor(i / 20);
+					obj.position.x = (x * 300) - 600;
+					obj.position.y = -(y * 250) + 375;
+					obj.position.z = (z * 300) - 1350;
+					targets.grid.push(obj);
+				}
+			}
+
 			async function fetchSheetData() {
 				// Public Sheets API call using API key; ensure sheet is shared "Anyone with the link" view
 				const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_RANGE)}?key=${API_KEY}`;
@@ -488,17 +403,13 @@
 				const headers = data.values[0];
 				const rows = data.values.slice(1);
 				
-				const objects = rows.map(r => {
-						const obj = {};
-						headers.forEach((h,i) => obj[h] = r[i] || '');
-						return obj;
-					});
-			
-			// now feed objects into the three.js demo
-			populateThreeData(objects);
-			
-			// Log success message
-			console.log(`✅ Success! Loaded ${objects.length} employees from Google Sheets and updated the visualization! Use the GRID/SPHERE/HELIX/RANDOM buttons to change layouts.`);
+				const employees = rows.map(r => {
+					const obj = {};
+					headers.forEach((h,i) => obj[h] = r[i] || '');
+					return obj;
+				});
+				populateThreeData(employees);
+				console.log(`Loaded ${employees.length} employees. Use layout buttons to rearrange.`);
 			
 		} catch (error) {
 			// Show detailed error to user
@@ -537,42 +448,6 @@
 			}
 
 			function createEmployeeElementsFromData(tableData, employeeData) {
-				// Function to get gradient background color based on net worth
-				function getNetWorthColor(netWorthString) {
-					// Remove dollar signs, commas, and convert to number
-					const netWorth = parseFloat(netWorthString.replace(/[$,]/g, '')) || 0;
-					
-					let r, g, b;
-					
-					if (netWorth < 100000) {
-						// Red zone: < $100K
-						// Gradient from dark red (low) to bright orange-red (close to 100K)
-						const ratio = Math.min(netWorth / 100000, 1); // 0 to 1
-						// Dark red (139,0,0) -> Bright red-orange (255,69,0)
-						r = Math.round(139 + (255 - 139) * ratio);
-						g = Math.round(0 + (69 - 0) * ratio);
-						b = 0;
-					} else if (netWorth < 200000) {
-						// Orange zone: $100K - $200K
-						// Gradient from orange (255,140,0) to yellow-green (154,205,50)
-						const ratio = (netWorth - 100000) / 100000; // 0 to 1
-						// Orange (255,140,0) -> Yellow-green (154,205,50)
-						r = Math.round(255 - (255 - 154) * ratio);
-						g = Math.round(140 + (205 - 140) * ratio);
-						b = Math.round(0 + (50 - 0) * ratio);
-					} else {
-						// Green zone: >= $200K
-						// Gradient from yellow-green (154,205,50) to forest green (34,139,34)
-						const ratio = Math.min((netWorth - 200000) / 200000, 1); // 0 to 1, capped at 1
-						// Yellow-green (154,205,50) -> Forest green (34,139,34)
-						r = Math.round(154 - (154 - 34) * ratio);
-						g = Math.round(205 - (205 - 139) * ratio);
-						b = Math.round(50 - (50 - 34) * ratio);
-					}
-					
-					return `rgba(${r}, ${g}, ${b}, 0.8)`;
-				}
-				
 				// Clear existing objects
 				objects.length = 0;
 				targets.table.length = 0;
@@ -581,9 +456,7 @@
 				targets.grid.length = 0;
 
 				// Remove existing objects from scene
-				while(scene.children.length > 0) {
-					scene.remove(scene.children[0]);
-				}
+				while (scene.children.length) scene.remove(scene.children.pop());
 
 				// Create employee cards from table data
 				for ( let i = 0; i < tableData.length; i += 3 ) {
@@ -640,63 +513,13 @@
 
 					objects.push( objectCSS );
 
-					// Table positions (20x10 grid layout)
-					const object = new THREE.Object3D();
-					// Arrange in 20 columns x 10 rows grid
-					const col = employeeIndex % 20; // 0-19 columns
-					const row = Math.floor(employeeIndex / 20); // 0-9 rows
-					
-					object.position.x = (col * 140) - (19 * 140 / 2); // Center the 20-column grid
-					object.position.y = -(row * 180) + (9 * 180 / 2); // Center the 10-row grid
-
-					targets.table.push( object );
+					// Push placeholder; actual layout objects generated separately
+					const placeholder = new THREE.Object3D();
+					targets.table.push(placeholder);
 				}
-
-				// Generate sphere positions
-				const vector = new THREE.Vector3();
-				for ( let i = 0, l = objects.length; i < l; i ++ ) {
-					const phi = Math.acos( - 1 + ( 2 * i ) / l );
-					const theta = Math.sqrt( l * Math.PI ) * phi;
-					const object = new THREE.Object3D();
-					object.position.setFromSphericalCoords( 800, phi, theta );
-					vector.copy( object.position ).multiplyScalar( 2 );
-					object.lookAt( vector );
-					targets.sphere.push( object );
-				}
-
-			// Generate double helix positions (DNA-like)
-			// Replace with single cylindrical paired helix (from reference file)
-			for ( let i = 0, l = objects.length; i < l; i ++ ) {
-				const row = Math.floor( i / 2 );
-				let theta = row * 0.2 + Math.PI;
-				if ( i % 2 === 1 ) {
-					theta += Math.PI; // opposite side for each pair
-				}
-				const y = - ( row * 30 ) + 450; // vertical spacing
-				const object = new THREE.Object3D();
-				object.position.setFromCylindricalCoords( 900, theta, y );
-				vector.x = object.position.x * 2;
-				vector.y = object.position.y;
-				vector.z = object.position.z * 2;
-				object.lookAt( vector );
-				targets.helix.push( object );
-			}
-			// Generate 3D grid positions (5x4x10)
-				for ( let i = 0; i < objects.length; i ++ ) {
-					const object = new THREE.Object3D();
-					// 5 columns (X), 4 rows (Y), 10 layers (Z) = 5x4x10 = 200 positions
-					const x = i % 5; // 0-4 columns
-					const y = Math.floor( i / 5 ) % 4; // 0-3 rows
-					const z = Math.floor( i / 20 ); // 0-9 layers (5*4=20 per layer)
-					
-					object.position.x = ( x * 300 ) - 600; // Center the 5 columns
-					object.position.y = - ( y * 250 ) + 375; // Center the 4 rows
-					object.position.z = ( z * 300 ) - 1350; // Center the 10 layers
-					targets.grid.push( object );
-				}
-
-				// Start with table layout
-				transform( targets.table, 2000 );
+				// Recompute layouts for new object set
+				generateLayouts();
+				transform(targets.table, 2000);
 			}
 
 			function handleCredentialResponse() {
