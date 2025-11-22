@@ -194,6 +194,22 @@
 			border: 1px solid rgba(127,255,255,0.75);
 			border-radius: 0px;
 		}
+
+			/* Full-page plain login overlay */
+			#login-overlay {
+				position: fixed;
+				top: 0; left: 0; width: 100%; height: 100%;
+				background: #ffffff;
+				z-index: 1000;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				color: #000;
+				font-family: Helvetica, sans-serif;
+			}
+			#login-overlay h2 { margin: 0 0 10px 0; }
+			#login-overlay p { margin: 4px 0 20px 0; }
 		</style>
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -201,6 +217,19 @@
 	<body>
 
 		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> css3d - KaSatria employee directory.</div>
+
+		<!-- Plain login overlay (replaces previous floating auth UI) -->
+		<div id="login-overlay">
+			<h2>Welcome Back</h2>
+			<p>Sign in to load the employee visualization</p>
+			<div id="g_id_onload"
+				 data-client_id="679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com"
+				 data-callback="handleCredentialResponse"
+				 data-auto_prompt="false">
+			</div>
+			<div class="g_id_signin" data-type="standard" data-size="large"></div>
+		</div>
+
 		<div id="container"></div>
 		<div id="menu">
 			<div class="buttons">
@@ -217,19 +246,7 @@
 			</div>
 		</div>
 	
-	<!-- Google Sign-In -->
-		<div id="auth-container">
-			<!-- Container for rendered Google button -->
-			<div class="g_id_signin"></div>
-			<div id="user-info" style="display: none;">
-				<img id="user-avatar" src="" alt="User Avatar">
-				<div id="user-details">
-					<p id="user-name"></p>
-					<p id="user-email"></p>
-				</div>
-				<button id="sign-out" title="Sign Out">⇥</button>
-			</div>
-		</div>
+	<!-- Removed old auth-container and user-info (simplified overlay approach) -->
 
 
 		<script type="importmap">
@@ -325,41 +342,21 @@
 				targets.sphere.push( object );
 			}
 
-			// helix - double helix DNA-like structure
-
-			const helixRadius = 600;
-			const helixSpacing = 16;
-			const helixRotation = 0.175;
-
+			// helix - paired objects around a single cylindrical helix
 			for ( let i = 0, l = objects.length; i < l; i ++ ) {
-
-				const object = new THREE.Object3D();
-				const halfLength = Math.floor( l / 2 );
-				const halfHeight = ( halfLength * helixSpacing ) / 2;
-
-				if ( i < halfLength ) {
-
-					// First strand - clockwise helix
-					const theta = i * helixRotation + Math.PI;
-					const y = - ( i * helixSpacing ) + halfHeight;
-					object.position.setFromCylindricalCoords( helixRadius, theta, y );
-
-				} else {
-
-					// Second strand - counter-clockwise helix
-					const adjustedIndex = i - halfLength;
-					const theta = - adjustedIndex * helixRotation + Math.PI;
-					const y = - ( adjustedIndex * helixSpacing ) + halfHeight;
-					object.position.setFromCylindricalCoords( helixRadius, theta, y );
-
+				const row = Math.floor( i / 2 );
+				let theta = row * 0.2 + Math.PI;
+				if ( i % 2 === 1 ) {
+					theta += Math.PI;
 				}
-
-				vector.x = object.position.x;
+				const y = - ( row * 30 ) + 450;
+				const object = new THREE.Object3D();
+				object.position.setFromCylindricalCoords( 900, theta, y );
+				vector.x = object.position.x * 2;
 				vector.y = object.position.y;
-				vector.z = object.position.z;
+				vector.z = object.position.z * 2;
 				object.lookAt( vector );
 				targets.helix.push( object );
-
 			}
 			
 			// Generate 3D grid positions (5x4x10)
@@ -414,12 +411,9 @@
 
 			} );
 
-			transform( targets.table, 2000 );				//
+			transform( targets.table, 2000 );
 
 				window.addEventListener( 'resize', onWindowResize );
-
-				// Show welcome message after initialization (since table is empty)
-				showWelcomeMessage();
 
 			}
 
@@ -464,111 +458,21 @@
 				renderer.render( scene, camera );
 			}
 
-			function showWelcomeMessage(isReturningUser = false) {
-				// Clear existing scene
-				while(scene.children.length > 0) {
-					scene.remove(scene.children[0]);
-				}
-				
-				// Clear object arrays
-				objects.length = 0;
-				targets.table.length = 0;
-				targets.sphere.length = 0;
-				targets.helix.length = 0;
-				targets.grid.length = 0;
-				
-			// Create welcome message element
-			const welcomeElement = document.createElement('div');
-			welcomeElement.style.width = '600px';
-			welcomeElement.style.backgroundColor = 'rgba(0, 127, 127, 0.75)';
-			welcomeElement.style.border = '2px solid rgba(255, 255, 255, 0.5)';
-			welcomeElement.style.color = 'white';
-			welcomeElement.style.textAlign = 'center';
-			welcomeElement.style.padding = '40px';
-			welcomeElement.style.fontFamily = 'Arial, sans-serif';			
-			
-				if (isReturningUser) {
-					welcomeElement.innerHTML = `
-						<h2 style="margin: 0 0 10px 0; color: white; text-align: center; width: 100%;">👋 Welcome Back!</h2>
-						<p style="font-size: 18px; margin: 20px 0; text-align: center; width: 100%;">Please sign in again.</p>
-						<p style="font-size: 14px; color: #cccccc; margin: 0; text-align: center; width: 100%;">Your visualization will be updated with fresh data once you sign in.</p>
-					`;
-				} else {
-					welcomeElement.innerHTML = `
-						<h2 style="margin: 0 0 10px 0; color: white; text-align: center; width: 100%;">KaSatria Employee Directory Visualization</h2>
-						<p style="font-size: 18px; margin: 20px 0; text-align: center; width: 100%;">Welcome! Please sign in with Google to load employee data.</p>
-					`;
-				}
 
-				const welcomeObject = new CSS3DObject(welcomeElement);
-				welcomeObject.position.set(0, 0, 0);
-				scene.add(welcomeObject);
-				objects.push(welcomeObject);
-				
-				render();
-			}
-
-			// Google Sign-In functionality
-			let tokenClient;
-			let accessToken = null;
-			let hasLoggedInBefore = false;
-            let selectedEmail = null;
-
-			function initTokenClient() {
-				tokenClient = google.accounts.oauth2.initTokenClient({
-					client_id: '679705072650-fojvnrbuq37rjqchnvie1vl5gbtvnmkl.apps.googleusercontent.com',
-					scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-					// Use the selected email to avoid a second account chooser
-					hint: selectedEmail || undefined,
-					callback: (resp) => {
-						if (resp.error) {
-							// If first-time on this origin, Google may require consent
-							if (resp.error === 'consent_required' || resp.error === 'interaction_required' || resp.error === 'access_denied') {
-								try {
-									// Re-request with explicit consent prompt
-									tokenClient.requestAccessToken({ prompt: 'consent' });
-								} catch (e) {
-									console.error('Re-requesting consent failed:', e);
-								}
-								return;
-							}
-							console.error(`Authentication failed: ${resp.error}`);
-							alert(`Google authorization failed: ${resp.error}`);
-							return;
-						}
-						accessToken = resp.access_token;
-						// Now we can fetch the sheet
-						fetchSheetData();
-					},
-				});
-			}
-
-			// Automatic token request function (called after sign in)
-			function requestToken() {
-				if (!tokenClient) {
-					initTokenClient();
-				}
-				// Request token without re-showing the account chooser if possible
-				tokenClient.requestAccessToken({ prompt: '' });
-			}
+			// Google Sign-In functionality (API key only, no OAuth consent)
+			const SHEET_ID = '1XTLJSHtQMQjbZ8wiuBxNfNMBPYGJdLq3GTRYMIeVrlw'; // Public or anyone-with-link readable
+			const SHEET_RANGE = 'Data Template!A1:F1000';
+			const API_KEY = 'AIzaSyBWwkCCjgtOwJ-v55ToH2j3N_Te4ZFDOkk';
 
 			async function fetchSheetData() {
-				const sheetId = '1XTLJSHtQMQjbZ8wiuBxNfNMBPYGJdLq3GTRYMIeVrlw';
-				const range = 'Data Template!A1:F1000'; // adjust range & sheet name
-				const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}`;
-
+				// Public Sheets API call using API key; ensure sheet is shared "Anyone with the link" view
+				const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_RANGE)}?key=${API_KEY}`;
 				try {
-					const res = await fetch(url, {
-						headers: {
-							'Authorization': 'Bearer ' + accessToken
-						}
-					});
-					
+					const res = await fetch(url);
 					if (!res.ok) {
 						const errorText = await res.text();
-						throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
+						throw new Error(`HTTP ${res.status} - ${errorText}`);
 					}
-					
 					const data = await res.json();
 				
 				if (!data.values || data.values.length === 0) {
@@ -758,39 +662,21 @@
 				}
 
 			// Generate double helix positions (DNA-like)
-			const helixRadius = 900;
-			const helixSpacing = 16;
-			const helixRotation = 0.175;
-
+			// Replace with single cylindrical paired helix (from reference file)
 			for ( let i = 0, l = objects.length; i < l; i ++ ) {
-
-				const object = new THREE.Object3D();
-				const halfLength = Math.floor( l / 2 );
-				const halfHeight = ( halfLength * helixSpacing ) / 2;
-
-				if ( i < halfLength ) {
-
-					// First strand - clockwise helix
-					const theta = i * helixRotation + Math.PI;
-					const y = - ( i * helixSpacing ) + halfHeight;
-					object.position.setFromCylindricalCoords( helixRadius, theta, y );
-
-				} else {
-
-					// Second strand - counter-clockwise helix
-					const adjustedIndex = i - halfLength;
-					const theta = - adjustedIndex * helixRotation + Math.PI;
-					const y = - ( adjustedIndex * helixSpacing ) + halfHeight;
-					object.position.setFromCylindricalCoords( helixRadius, theta, y );
-
+				const row = Math.floor( i / 2 );
+				let theta = row * 0.2 + Math.PI;
+				if ( i % 2 === 1 ) {
+					theta += Math.PI; // opposite side for each pair
 				}
-
+				const y = - ( row * 30 ) + 450; // vertical spacing
+				const object = new THREE.Object3D();
+				object.position.setFromCylindricalCoords( 900, theta, y );
 				vector.x = object.position.x * 2;
 				vector.y = object.position.y;
 				vector.z = object.position.z * 2;
 				object.lookAt( vector );
 				targets.helix.push( object );
-
 			}
 			// Generate 3D grid positions (5x4x10)
 				for ( let i = 0; i < objects.length; i ++ ) {
@@ -810,82 +696,14 @@
 				transform( targets.table, 2000 );
 			}
 
-			function handleCredentialResponse(response) {
-				// Decode the JWT token
-				const responsePayload = decodeJwtResponse(response.credential);
-				
-				// Mark that user has logged in
-				hasLoggedInBefore = true;
-				selectedEmail = responsePayload.email || null;
-				
-				// Update user info display
-				document.getElementById('user-name').textContent = responsePayload.name;
-				document.getElementById('user-email').textContent = responsePayload.email;
-				document.getElementById('user-avatar').src = responsePayload.picture;
-				
-				// Remove welcome message
-				const welcomeMsg = document.getElementById('welcome-message');
-				if (welcomeMsg) welcomeMsg.remove();
-				
-			// Show user info and hide sign-in button
-			document.getElementById('user-info').style.display = 'flex';
-			document.querySelector('.g_id_signin').style.display = 'none';				// Clear any existing data to ensure fresh fetch
-				table = [];
-				
-				// Automatically fetch fresh data
-				requestToken();
-				// If an early response was queued before module loaded, process it now (avoid losing credential)
-				if(window._earlyGSIResp){
-					console.log('Processing early queued GSI credential');
-					delete window._earlyGSIResp; // already handled by initial call
-				}
+			function handleCredentialResponse() {
+				// Hide overlay and begin data fetch (no consent popup expected)
+				const overlay = document.getElementById('login-overlay');
+				if (overlay) overlay.style.display = 'none';
+				fetchSheetData();
 			}
 
-			function decodeJwtResponse(token) {
-				const base64Url = token.split('.')[1];
-				const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-				const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-				}).join(''));
-				return JSON.parse(jsonPayload);
-			}
-
-			// Sign out functionality
-			document.addEventListener('DOMContentLoaded', function() {
-				const signOutButton = document.getElementById('sign-out');
-				if (signOutButton) {
-					signOutButton.addEventListener('click', function() {
-					google.accounts.id.disableAutoSelect();
-					document.getElementById('user-info').style.display = 'none';
-					document.querySelector('.g_id_signin').style.display = 'block';
-					// Clear user data
-						document.getElementById('user-name').textContent = '';
-						document.getElementById('user-email').textContent = '';
-						document.getElementById('user-avatar').src = '';
-						// Reset token data
-						accessToken = null;
-						tokenClient = null;
-						selectedEmail = null;
-						// Reset login status to show fresh welcome message next time
-						hasLoggedInBefore = false;
-						// Clear scene completely
-						while(scene.children.length > 0) {
-							scene.remove(scene.children[0]);
-						}
-						// Reset all arrays
-						table = [];
-						objects.length = 0;
-						targets.table.length = 0;
-						targets.sphere.length = 0;
-						targets.helix.length = 0;
-						targets.grid.length = 0;
-						// Clear any cached data and show welcome message
-						window.employeeData = null;
-						// Show fresh welcome message (not welcome back since we reset the flag)
-						showWelcomeMessage(false);
-					});
-				}
-			});
+			// No sign-out feature retained (simplified zero-popup mode)
 
 			// Expose handler globally (if future non-module code needs it)
 			window.handleCredentialResponse = handleCredentialResponse;
