@@ -137,6 +137,45 @@
 			border-radius: 0px;
 		}
 
+		/* Responsive adjustments for smaller screens */
+		@media (max-width: 1130px) {
+			#menu {
+				flex-direction: column;
+				gap: 12px;
+			}
+
+			#legend {
+				position: static;
+				justify-content: center;
+				margin-top: 8px;
+			}
+
+			.gradient-bar {
+				width: 150px;
+			}
+		}
+
+		@media (max-width: 600px) {
+			#legend {
+				font-size: 10px;
+				gap: 6px;
+			}
+
+			#legend h4 {
+				font-size: 12px;
+			}
+
+			.gradient-bar {
+				width: 120px;
+				height: 16px;
+			}
+
+			button {
+				padding: 4px 8px;
+				font-size: 12px;
+			}
+		}
+
 			/* Full-page plain login overlay */
 			#login-overlay {
 				position: fixed;
@@ -351,7 +390,6 @@
 					targets.sphere.push(obj);
 				}
 				// Helix
-				// Centered vertically: compute total helix height then offset rows so midpoint is at y=0
 				const helixSpacing = 30;
 				const totalPairs = Math.ceil(objects.length / 2);
 				const helixHeight = (totalPairs - 1) * helixSpacing;
